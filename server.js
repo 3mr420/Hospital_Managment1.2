@@ -38,7 +38,7 @@ const verifyToken = (req, res, next) => {
   });
 };
 
-// Patient Registration (creates user account)
+
 server.post("/user/register", (req, res) => {
   const name = req.body.name;
   const email = req.body.email;
@@ -59,7 +59,7 @@ server.post("/user/register", (req, res) => {
   });
 });
 
-// User Login (Admin/User/Doctor)
+
 server.post("/user/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -85,7 +85,7 @@ server.post("/user/login", (req, res) => {
   });
 });
 
-// Add Doctor (Admin only) - Creates account and profile
+
 server.post("/doctor/add", verifyToken, (req, res) => {
   if (req.userDetails.role !== "admin") {
     console.log(
@@ -105,7 +105,7 @@ server.post("/doctor/add", verifyToken, (req, res) => {
       return res.status(500).send("Error hashing password");
     }
 
-    // First create the account
+    
     db.run(
       `INSERT INTO ACCOUNTS (name, email, password, role) VALUES (?, ?, ?, ?)`,
       [name, email, hashedPassword, "doctor"],
@@ -116,7 +116,7 @@ server.post("/doctor/add", verifyToken, (req, res) => {
 
         const accountId = this.lastID;
 
-        // Then create the doctor profile
+       
         db.run(
           `INSERT INTO DOCTOR_PROFILES (account_id, specialty, years_of_experience) VALUES (?, ?, ?)`,
           [accountId, specialty, yearsOfExperience],
@@ -132,7 +132,7 @@ server.post("/doctor/add", verifyToken, (req, res) => {
   });
 });
 
-// Add Doctor Schedule (Admin only)
+
 server.post("/doctor/schedule", verifyToken, (req, res) => {
   if (req.userDetails.role !== "admin") {
     return res.status(403).send("you are not admin.");
@@ -153,7 +153,7 @@ server.post("/doctor/schedule", verifyToken, (req, res) => {
   );
 });
 
-// Get All Doctors with their profiles
+
 server.get("/doctors", (req, res) => {
   db.all(
     `SELECT a.ID, a.NAME, a.EMAIL, dp.SPECIALTY, dp.YEARS_OF_EXPERIENCE 
@@ -169,7 +169,7 @@ server.get("/doctors", (req, res) => {
   );
 });
 
-// Get Doctor Schedules
+
 server.get("/doctor/schedules/:doctorId", (req, res) => {
   const doctorId = req.params.doctorId;
   db.all(
@@ -184,7 +184,7 @@ server.get("/doctor/schedules/:doctorId", (req, res) => {
   );
 });
 
-// Create Booking (User only) - Check for conflicts
+
 server.post("/booking/create", verifyToken, (req, res) => {
   if (req.userDetails.role !== "user") {
     return res.status(403).send("you are not patient.");
@@ -193,7 +193,7 @@ server.post("/booking/create", verifyToken, (req, res) => {
   const { scheduleId } = req.body;
   const userId = req.userDetails.id;
 
-  // First check if the schedule is already booked
+  
   db.get(
     `SELECT * FROM BOOKINGS WHERE SCHEDULE_ID = ?`,
     [scheduleId],
@@ -206,7 +206,7 @@ server.post("/booking/create", verifyToken, (req, res) => {
         return res.status(400).send("This appointment slot is already booked");
       }
 
-      // Create the booking
+    
       db.run(
         `INSERT INTO BOOKINGS (user_account_id, schedule_id, status) VALUES (?, ?, ?)`,
         [userId, scheduleId, "Pending"],
@@ -221,7 +221,7 @@ server.post("/booking/create", verifyToken, (req, res) => {
   );
 });
 
-// Get User Bookings (User only)
+
 server.get("/user/bookings", verifyToken, (req, res) => {
   if (req.userDetails.role !== "user") {
     return res.status(403).send("you are not patient.");
@@ -247,7 +247,7 @@ server.get("/user/bookings", verifyToken, (req, res) => {
   );
 });
 
-// Get Doctor Bookings (Doctor only)
+
 server.get("/doctor/bookings", verifyToken, (req, res) => {
   if (req.userDetails.role !== "doctor") {
     return res.status(403).send("you are not doctor.");
@@ -272,7 +272,7 @@ server.get("/doctor/bookings", verifyToken, (req, res) => {
   );
 });
 
-// Update Booking Status (Admin only)
+
 server.put("/booking/status/:id", verifyToken, (req, res) => {
   if (req.userDetails.role !== "admin") {
     return res.status(403).send("you are not admin.");
@@ -293,7 +293,7 @@ server.put("/booking/status/:id", verifyToken, (req, res) => {
   );
 });
 
-// Get All Bookings (Admin only)
+
 server.get("/admin/bookings", verifyToken, (req, res) => {
   if (req.userDetails.role !== "admin") {
     return res.status(403).send("you are not admin.");
@@ -317,7 +317,7 @@ server.get("/admin/bookings", verifyToken, (req, res) => {
   );
 });
 
-// Get Available Schedules (Public)
+
 server.get("/schedules/available", (req, res) => {
   db.all(
     `SELECT s.*, d.NAME as doctor_name, dp.SPECIALTY
@@ -335,7 +335,7 @@ server.get("/schedules/available", (req, res) => {
   );
 });
 
-// Logout
+
 server.post("/logout", (req, res) => {
   res.clearCookie("authToken");
   return res.status(200).send("Logged out successfully");
